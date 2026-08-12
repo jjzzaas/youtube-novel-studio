@@ -4,10 +4,11 @@ on:
   push:
     paths:
       - 'episodes/**/*.md'
+      - 'episodes/**/*.json'
   workflow_dispatch:
     inputs:
       episode_path:
-        description: '예: episodes/mongyeong/ep001.md'
+        description: '예: episodes/mongyeong/ep001.json'
         required: true
         type: string
 
@@ -40,10 +41,10 @@ jobs:
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             FILE="${{ inputs.episode_path }}"
           else
-            FILE=$(git show --pretty='' --name-only "$GITHUB_SHA" | grep '^episodes/.*\.md$' | head -n 1)
+            FILE=$(git show --pretty='' --name-only "$GITHUB_SHA" | grep -E '^episodes/.*\.(md|json)$' | head -n 1)
           fi
           if [ -z "$FILE" ] || [ ! -f "$FILE" ]; then
-            echo "Episode markdown not found: $FILE" >&2
+            echo "Episode source not found: $FILE" >&2
             exit 1
           fi
           echo "path=$FILE" >> "$GITHUB_OUTPUT"
