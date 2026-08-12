@@ -1,0 +1,29 @@
+{
+  "version": "1.0",
+  "target_duration_minutes": {"min": 8, "max": 15},
+  "review_before_publish": true,
+  "youtube_default_visibility": "private",
+  "audio": {
+    "narrator_voice": "ko-KR-SunHiNeural",
+    "dialogue_ducking_db": -10,
+    "bgm_target_db": -24,
+    "enable_sfx": true,
+    "enable_bgm": true,
+    "enable_silence_direction": true
+  },
+  "visual": {
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "enable_pan_zoom": true,
+    "enable_fades": true,
+    "enable_scene_cards": true,
+    "subtitle_mode": "cinematic"
+  },
+  "quality_gate": {
+    "require_duration_check": true,
+    "require_audio_check": true,
+    "require_subtitles": true,
+    "require_manual_approval_before_public": true
+  }
+}
