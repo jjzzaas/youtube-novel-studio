@@ -24,19 +24,12 @@ async def pick_korean_voice() -> str:
     return (female or korean)[0]["ShortName"]
 
 
-async def synthesize(text: str, mp3_path: Path, srt_path: Path) -> str:
+async def synthesize(text: str, mp3_path: Path) -> str:
     voice = await pick_korean_voice()
     communicate = edge_tts.Communicate(text, voice, rate="-5%")
-    submaker = edge_tts.SubMaker()
-    with mp3_path.open("wb") as audio_file:
-        async for chunk in communicate.stream():
-            if chunk["type"] == "audio":
-                audio_file.write(chunk["data"])
-            elif chunk["type"] == "WordBoundary":
-                submaker.feed(chunk)
-    srt_path.write_text(submaker.get_srt(), encoding="utf-8")
-    if not srt_path.exists() or srt_path.stat().st_size == 0:
-        raise RuntimeError("Subtitle generation failed")
+    await communicate.save(str(mp3_path))
+    if not mp3_path.exists() or mp3_path.stat().st_size == 0:
+        raise RuntimeError("TTS generation failed")
     return voice
 
 
@@ -51,6 +44,38 @@ def probe_duration(audio_path: Path) -> float:
         text=True,
     )
     return float(result.stdout.strip())
+
+
+def srt_time(seconds: float) -> str:
+    milliseconds = max(0, round(seconds * 1000))
+    h, rem = divmod(milliseconds, 3_600_000)
+    m, rem = divmod(rem, 60_000)
+    s, ms = divmod(rem, 1000)
+    return f"{h:02}:{m:02}:{s:02},{ms:03}"
+
+
+def make_subtitles(text: str, duration: float, srt_path: Path) -> None:
+    sentences = [s.strip() for s in re.split(r"(?<=[.!?。！？])\s+|\n+", text) if s.strip()]
+    chunks = []
+    for sentence in sentences:
+        if len(sentence) <= 34:
+            chunks.append(sentence)
+            continue
+        parts = re.findall(r".{1,34}(?:\s+|$)|.{1,34}$", sentence)
+        chunks.extend(p.strip() for p in parts if p.strip())
+    if not chunks:
+        chunks = [text]
+
+    weights = [max(1, len(re.sub(r"\s+", "", c))) for c in chunks]
+    total_weight = sum(weights)
+    cursor = 0.0
+    entries = []
+    for i, (chunk, weight) in enumerate(zip(chunks, weights), 1):
+        span = duration * weight / total_weight
+        end = duration if i == len(chunks) else min(duration, cursor + span)
+        entries.append(f"{i}\n{srt_time(cursor)} --> {srt_time(end)}\n{chunk}\n")
+        cursor = end
+    srt_path.write_text("\n".join(entries), encoding="utf-8")
 
 
 def ffmpeg_filter_path(path: Path) -> str:
@@ -102,8 +127,9 @@ async def main() -> None:
     srt_path = out_dir / f"{episode}.srt"
     mp4_path = out_dir / f"{episode}.mp4"
 
-    voice = await synthesize(text, mp3_path, srt_path)
+    voice = await synthesize(text, mp3_path)
     duration = probe_duration(mp3_path)
+    make_subtitles(text, duration, srt_path)
     render_video(mp3_path, srt_path, mp4_path, title)
 
     report = (
