@@ -1,0 +1,26 @@
+{
+  "title": "자동화 최종형 테스트 EP.01",
+  "scenes": [
+    {
+      "title": "낯선 숲",
+      "mood": "mystery",
+      "segments": [
+        {"speaker": "narrator", "voice_style": "narrator", "text": "눈을 뜨자 낯선 숲이었다. 바람은 거의 없었고, 축축한 흙냄새만 조용히 올라왔다.", "pause_after": 0.8},
+        {"speaker": "주인공", "voice_style": "male", "text": "여긴... 어디지?", "pause_after": 1.0},
+        {"speaker": "narrator", "voice_style": "narrator", "text": "대답은 없었다. 대신 멀리서 마른 나뭇가지 하나가 부러지는 소리가 들렸다.", "pause_after": 0.7}
+      ]
+    },
+    {
+      "title": "접근",
+      "mood": "tension",
+      "segments": [
+        {"speaker": "주인공", "voice_style": "male", "text": "누구야?", "pause_after": 0.8},
+        {"speaker": "narrator", "voice_style": "narrator", "text": "검은 형체가 나무 사이에서 모습을 드러냈다. 사람과 비슷했지만 팔이 비정상적으로 길었다.", "pause_after": 0.8},
+        {"speaker": "하루", "voice_style": "female", "text": "숙이세요!", "pause_after": 0.3},
+        {"speaker": "narrator", "voice_style": "narrator", "text": "빛이 시야를 가르며 지나갔다. 다음 순간 검은 형체가 뒤로 튕겨 나갔다.", "pause_after": 0.8},
+        {"speaker": "하루", "voice_style": "female", "text": "괜찮아요? 다친 곳은 없어요?", "pause_after": 0.6},
+        {"speaker": "주인공", "voice_style": "male", "text": "모르겠어요. 아무것도... 기억이 안 납니다.", "pause_after": 1.2}
+      ]
+    }
+  ]
+}
