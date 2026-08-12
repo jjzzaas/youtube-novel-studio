@@ -35,6 +35,8 @@ async def synthesize(text: str, mp3_path: Path, srt_path: Path) -> str:
             elif chunk["type"] == "WordBoundary":
                 submaker.feed(chunk)
     srt_path.write_text(submaker.get_srt(), encoding="utf-8")
+    if not srt_path.exists() or srt_path.stat().st_size == 0:
+        raise RuntimeError("Subtitle generation failed")
     return voice
 
 
@@ -51,12 +53,18 @@ def probe_duration(audio_path: Path) -> float:
     return float(result.stdout.strip())
 
 
+def ffmpeg_filter_path(path: Path) -> str:
+    value = path.resolve().as_posix()
+    return value.replace("\\", "\\\\").replace(":", "\\:").replace("'", "\\'")
+
+
 def render_video(audio_path: Path, srt_path: Path, output_path: Path, title: str) -> None:
     safe_title = title.replace("'", "’").replace(":", "：")
+    subtitle_file = ffmpeg_filter_path(srt_path)
     vf = (
         "drawtext=fontfile=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc:"
         f"text='{safe_title}':fontcolor=white:fontsize=54:x=(w-text_w)/2:y=100,"
-        f"subtitles='{srt_path.as_posix()}':"
+        f"subtitles=filename='{subtitle_file}':"
         "force_style='FontName=Noto Sans CJK KR,FontSize=18,PrimaryColour=&H00FFFFFF,"
         "OutlineColour=&H00000000,BorderStyle=1,Outline=2,Shadow=0,Alignment=2,MarginV=70'"
     )
