@@ -17,6 +17,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -36,15 +38,15 @@ jobs:
         shell: bash
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "path=${{ inputs.episode_path }}" >> "$GITHUB_OUTPUT"
+            FILE="${{ inputs.episode_path }}"
           else
-            FILE=$(git diff-tree --no-commit-id --name-only -r "$GITHUB_SHA" | grep '^episodes/.*\.md$' | head -n 1)
-            if [ -z "$FILE" ]; then
-              echo "No episode markdown found in this commit" >&2
-              exit 1
-            fi
-            echo "path=$FILE" >> "$GITHUB_OUTPUT"
+            FILE=$(git show --pretty='' --name-only "$GITHUB_SHA" | grep '^episodes/.*\.md$' | head -n 1)
           fi
+          if [ -z "$FILE" ] || [ ! -f "$FILE" ]; then
+            echo "Episode markdown not found: $FILE" >&2
+            exit 1
+          fi
+          echo "path=$FILE" >> "$GITHUB_OUTPUT"
 
       - name: Render episode
         run: python scripts/render_episode.py "${{ steps.episode.outputs.path }}"
