@@ -1,0 +1,57 @@
+name: Render Novel Episode
+
+on:
+  push:
+    paths:
+      - 'episodes/**/*.md'
+  workflow_dispatch:
+    inputs:
+      episode_path:
+        description: '예: episodes/mongyeong/ep001.md'
+        required: true
+        type: string
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install system packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg fonts-noto-cjk
+
+      - name: Install Python packages
+        run: pip install -r requirements.txt
+
+      - name: Resolve episode path
+        id: episode
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "path=${{ inputs.episode_path }}" >> "$GITHUB_OUTPUT"
+          else
+            FILE=$(git diff-tree --no-commit-id --name-only -r "$GITHUB_SHA" | grep '^episodes/.*\.md$' | head -n 1)
+            if [ -z "$FILE" ]; then
+              echo "No episode markdown found in this commit" >&2
+              exit 1
+            fi
+            echo "path=$FILE" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Render episode
+        run: python scripts/render_episode.py "${{ steps.episode.outputs.path }}"
+
+      - name: Upload completed episode
+        uses: actions/upload-artifact@v4
+        with:
+          name: rendered-episode-${{ github.run_number }}
+          path: output/
+          retention-days: 7
