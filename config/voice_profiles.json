@@ -1,0 +1,18 @@
+{
+  "version": "1.0",
+  "default_engine": "edge-tts",
+  "profiles": {
+    "narrator": {
+      "type": "preset",
+      "voice": "ko-KR-SunHiNeural"
+    },
+    "protagonist": {
+      "type": "clone",
+      "engine": "pending_local_clone_engine",
+      "reference_audio": "assets/voices/protagonist/reference.wav",
+      "fallback_voice": "ko-KR-InJoonNeural",
+      "enabled_when_reference_exists": true,
+      "notes": "Use only the user's own provided voice reference. Fall back to preset TTS until a reference sample is supplied."
+    }
+  }
+}
